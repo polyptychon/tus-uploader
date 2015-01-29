@@ -1,0 +1,39 @@
+.file-uploader-manage-files {
+  width: auto;
+}
+.upload-thumbs {
+  .thumbnail {
+    &.disabled {
+      opacity: .5;
+    }
+    &.selected, &.selected:hover {
+      border-color: #666;
+    }
+  }
+  .image-container {
+    width: auto;
+    height: 180px;
+    background-size: 100%;
+    background-repeat: no-repeat;
+    background-position: center;
+    pointer-events: none;
+  }
+  .caption {
+    .progress {
+      height: 3px;
+    }
+    h5 {
+      text-align: center;
+    }
+  }
+}
+.uploader-container {
+  padding: 20px;
+  min-height: 316px;
+  header {
+    margin-bottom: 30px;
+  }
+  .nav.nav-tabs {
+    border: none;
+  }
+}

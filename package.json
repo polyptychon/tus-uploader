@@ -77,7 +77,8 @@
   },
   "dependencies": {
     "jquery": "^2.1.1",
-    "tus-client": "git://github.com/polyptychon/tus-client"
+    "tus-client": "git://github.com/polyptychon/tus-client",
+    "underscore": "^1.7.0"
   },
   "scripts": {
     "test": "gulp test",

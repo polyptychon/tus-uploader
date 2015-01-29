@@ -1,2 +1,31 @@
 .uploader
-  | {{ test }}
+  .panel.panel-default.uploader-container
+    header
+      h4 Select files
+    .tabpanel
+      ul(class="nav nav-tabs" role="tablist")
+        li(role="presentation" class="active")
+          a(href="#home" aria-controls="home" role="tab" data-toggle="tab") Upload
+    .tab-content
+      .tab-panel.panel.panel-default.uploader-container(ng-click="ctrl.deselectAll()")
+        .row.upload-thumbs
+          .div(class="col-xs-6 col-md-3", ng-repeat="file in ctrl.fileList")
+            a.thumbnail(href="javascript:",
+            ng-click="ctrl.toggleSelection(file)"
+            ng-class="{'selected' : ctrl.isFileSelected(file), 'uploading' : ctrl.isFileUploading(file), 'disabled': ctrl.isFileUploaded(file)}")
+              .image-container(style="{{file.imageDataAsStyle}}")
+              .caption
+                .progress(ng-class="{'test-hide' : !ctrl.isFileUploading(file)}")
+                  .progress-bar(role="progressbar", aria-valuenow="60", aria-valuemin="0", aria-valuemax="100", style="{{file.progress}}")
+                h5 {{file.name}}
+            .loading.hidden
+    .btn-toolbar
+      input.btn.btn-default(type="button", value="Add Files", triggerClickTo="#multiFilesSelection"
+        ng-class="{disabled : !ctrl.haveFileAPI(), 'disabled' : ctrl.uploading}")
+      input#multiFilesSelection.btn.hidden(type="file", class="input-file", s-change="ctrl.onFileInputSelection()", multiple)
+      input.btn.btn-default(type="button", value="Remove {{ctrl.getSelectedFileListLength()}}Selected Files",
+        ng-click="ctrl.removeSelectedFiles()", ng-class="{disabled : ctrl.isSelectedFileListEmpty(), 'disabled' : ctrl.uploading}")
+      input.btn.btn-default.btn-primary(type="button", value="{{ctrl.getValueIf(uploading,'Upload','Stop')}}",
+        ng-click="ctrl.toggleUpload()", ng-class="{disabled : !ctrl.isUploadEnabled()}")
+      input.btn.btn-default.btn-default(type="button", value="Cancel",
+        ng-click="ctrl.toggleUpload()", ng-class="{disabled : !ctrl.isUploadEnabled()}")
