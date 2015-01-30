@@ -24,8 +24,7 @@
         ng-class="{disabled : !ctrl.haveFileAPI(), 'disabled' : ctrl.uploading}")
       input#multiFilesSelection.btn.hidden(type="file", class="input-file", s-change="ctrl.onFileInputSelection()", multiple)
       input.btn.btn-default(type="button", value="Remove {{ctrl.getSelectedFileListLength()}}Selected Files",
-        ng-click="ctrl.removeSelectedFiles()", ng-class="{disabled : ctrl.isSelectedFileListEmpty(), 'disabled' : ctrl.uploading}")
-      input.btn.btn-default.btn-primary(type="button", value="{{ctrl.getValueIf(uploading,'Upload','Stop')}}",
+        ng-click="ctrl.removeSelectedFiles()", ng-class="{disabled : (ctrl.isSelectedFileListEmpty() || ctrl.uploading)}")
+      input.btn.btn-default.btn-primary.pull-right(type="button", value="{{ctrl.getValueIf(ctrl.uploading,'Upload','Stop')}}",
         ng-click="ctrl.toggleUpload()", ng-class="{disabled : !ctrl.isUploadEnabled()}")
-      input.btn.btn-default.btn-default(type="button", value="Cancel",
-        ng-click="ctrl.toggleUpload()", ng-class="{disabled : !ctrl.isUploadEnabled()}")
+

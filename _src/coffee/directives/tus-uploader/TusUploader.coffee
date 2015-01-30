@@ -11,23 +11,24 @@ module.exports = () ->
 
   link: (scope, element, attrs) ->
 
-  controller: ($scope)->
+  controller: ($scope, $q)->
     queueList = []
     selectedFileList = []
     isObjectDragOver = false
+    Q = $q
 
     @fileList = []
-    @rememberOverwriteAnswer = false
-    @overwrite = false
     @uploading = false
-    @currentFile = null
-    @showModal = false
-    upload = null
-    uploadCheck = null
     options =
       endpoint: 'http://localhost:1080/files/'
-      resetBefore: false
-      resetAfter: true
+      resetBefore: $('#reset_before').prop('checked') # if resetBefore is true file always uploads from first byte
+      resetAfter: true # clear localStorage after upload completes successfully
+      chunkSize: 1 # if chunkSize is not null then file uploads in chunks
+      checksum: false
+      minChunkSize: 51200
+      maxChunkSize: 2097152
+      moveFileAfterUpload: true
+      path: "" # Where we want to put uploaded file on server
 
     updateScope = ->
       try
@@ -74,6 +75,11 @@ module.exports = () ->
     @onFileInputSelection = ->
       @addFiles(event.target.files)
 
+    @getPendingUploadFiles = (fileList) ->
+      queueList = _.filter(fileList, (file) ->
+        return !file.uploaded
+      )
+
     @addFiles = (fileList) ->
       _.each(fileList, (file) =>
         file.selected = false
@@ -82,9 +88,7 @@ module.exports = () ->
         @fileList.push(file)
         loadImage(file)
       )
-      queueList = _.filter(@fileList, (file) ->
-        return !file.uploaded
-      )
+      queueList = @getPendingUploadFiles(fileList)
 
     loadImage = (file) ->
       return unless (file.type.match("image.(jpeg|png|gif)"))
@@ -112,6 +116,7 @@ module.exports = () ->
         file.selected = false
       )
       selectedFileList = []
+      updateScope()
 
     @isFileSelected = (file) ->
       return file.selected
@@ -133,27 +138,13 @@ module.exports = () ->
         @startFileUpload()
 
     @stopFileUpload = ->
+      tus.stopAll(@fileList)
       @uploading = false
-      @currentFile.uploading = false if @currentFile?
-      uploadCheck.stop() if uploadCheck?
-      upload.stop() if upload?
-      try
-        @apply() if @apply?
-      catch e
-        console.log(e)
+      updateScope()
 
     @startFileUpload = ->
-      files = @fileList
-      options =
-        endpoint: 'http://localhost:1080/files/'
-        resetBefore: $('#reset_before').prop('checked') # if resetBefore is true file always uploads from first byte
-        resetAfter: true # clear localStorage after upload completes successfully
-        chunkSize: 1 # if chunkSize is not null then file uploads in chunks
-        checksum: false
-        minChunkSize: 51200
-        maxChunkSize: 2097152
-        moveFileAfterUpload: true
-        path: "" # Where we want to put uploaded file on server
+      ctrl = @
+      files = @getPendingUploadFiles(@fileList)
 
       openDialogIfFileExist = (error)->
         if (error instanceof Error)
@@ -161,20 +152,25 @@ module.exports = () ->
         else
           Q.reject(error) unless (confirm("File(s) \"#{error.foundFilesString}\" are on server. Do you want to overwrite them?"))
       startUpload = (result)->
+        ctrl.uploading = true
+        updateScope()
         return tus.uploadAll(files, options)
       displayUploadedFiles = (result)->
-        console.log(result)
+        #console.log(result)
       updateProgress = (result)->
         result.value.file.uploading = result.value.percentage != '100.00'
         result.value.file.uploaded = result.value.percentage == '100.00'
         result.value.file.progress = "width: #{result.value.percentage}%"
+        queueList = ctrl.getPendingUploadFiles(files)
         updateScope()
       logErrors = (error) ->
         console.log(error)
       resetUI = () ->
+        queueList = ctrl.getPendingUploadFiles(files)
+        ctrl.uploading = false
+        updateScope()
 
-
-      tus.checkAll(@fileList, options)
+      tus.checkAll(files, options)
         .catch(openDialogIfFileExist)
         .then(startUpload)
         .then(displayUploadedFiles)
